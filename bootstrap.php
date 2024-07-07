@@ -1,6 +1,6 @@
 <?php
 
-if (file_exists(dirname(__DIR__, 2) . '/.tdg-php')) {
+if (file_exists(dirname(__DIR__, 3) . '/.tdg-php')) {
     $configuration = file_get_contents(dirname(__DIR__, 3) . '/.tdg-php');
     $lines = explode("\n", $configuration);
     foreach ($lines as $line) {
@@ -26,7 +26,7 @@ $dockerContainer = getenv('PHP_DOCKER_CONTAINER_NAME');
 $permanentAttachments = explode(',', getenv('PERMANENT_ATTACHMENTS'));
 $containerSrcFolder = $containerProjectRoot . '/src';
 
-// Funciones
+// Functions
 function getTestContent($phpTestPath): false|string
 {
     return file_get_contents($phpTestPath);
@@ -54,7 +54,7 @@ function getRelatedCode($testContent, $projectRoot, $baseNamespace, $testsBaseNa
 
 function callLlamaApi($data)
 {
-    $ch = curl_init('http://localhost:11434/api/generate'); // Cambia esta URL si tu endpoint es diferente
+    $ch = curl_init('http://localhost:11434/api/generate'); // Change this URL if your endpoint is different
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Content-Type: application/json'
@@ -65,7 +65,7 @@ function callLlamaApi($data)
     $response = curl_exec($ch);
 
     if (curl_errno($ch)) {
-        echo "Error al hacer la solicitud HTTP: " . curl_error($ch) . "\n";
+        echo "Error making HTTP request: " . curl_error($ch) . "\n";
         return null;
     }
 
@@ -151,7 +151,7 @@ function runTests($dockerContainer, $phpTestPath, $phpunitXmlPath, $errorLogPath
         $implode = implode("\n", $output);
         file_put_contents(
             $errorLogPath,
-            "Detalles del fallo en las pruebas:\n" . $implode
+            "Test failure details:\n" . $implode
         );
     }
     return $returnVar === 0;
@@ -190,7 +190,7 @@ function getAttachmentsCode(array $permanentAttachments, string $projectRoot): a
 
 while ($attempt < $maxAttempts) {
     $attempt++;
-    echo "Intento $attempt de $maxAttempts\n";
+    echo "Attempt $attempt of $maxAttempts\n";
 
     $testContent = getTestContent($phpTestPath);
     $attachmentsCode = getAttachmentsCode($permanentAttachments, $projectRoot);
@@ -199,7 +199,7 @@ while ($attempt < $maxAttempts) {
     $response = callLlamaApi($apiCallData);
 
     if ($response === null) {
-        echo "La solicitud a la API falló. Reintentando...\n";
+        echo "API request failed. Retrying...\n";
         continue;
     }
 
@@ -210,7 +210,7 @@ while ($attempt < $maxAttempts) {
     $containerFilePath = $containerProjectRoot . '/' . $path . '/' . $className . '.php';
 
     if (empty($code) || empty($path)) {
-        echo "La respuesta de la API no contiene el código esperado. Reintentando...\n";
+        echo "The API response does not contain the expected code. Retrying...\n";
         if (getenv('DEBUG') === 'true') {
             echo "Response: " . json_encode($response) . "\n";
             echo "Code: " . $code . "\n";
@@ -221,19 +221,19 @@ while ($attempt < $maxAttempts) {
     }
 
     if (is_dir($filePath)) {
-        echo "Error: La ruta $filePath es un directorio. Reintentando...\n";
+        echo "Error: The path $filePath is a directory. Retrying...\n";
         continue;
     }
 
     createFile($filePath, $code);
 
-    $errorLogPath = dirname(__DIR__, 2).'/tmp/' . time() . '.log';
+    $errorLogPath = dirname(__DIR__, 3).'/tmp/' . time() . '.log';
 
     if (runTests($dockerContainer, $phpTestPath, $phpunitXmlPath, $errorLogPath)) {
-        echo "¡Implementación correcta y pruebas exitosas!\n";
+        echo "Successful implementation and tests passed!\n";
         exit(0);
     } else {
-        echo "Implementación fallida. Borrando archivo y reintentando...\n";
+        echo "Failed implementation. Deleting file and retrying...\n";
         if(!file_exists($errorLogPath)) {
             touch($errorLogPath);
         }
@@ -247,5 +247,5 @@ while ($attempt < $maxAttempts) {
     }
 }
 
-echo "No se pudo obtener una implementación que pase todas las pruebas después de $maxAttempts intentos.\n";
+echo "Failed to obtain an implementation that passes all tests after $maxAttempts attempts.\n";
 exit(1);
