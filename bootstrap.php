@@ -1,7 +1,7 @@
 <?php
 
-if (file_exists(dirname(__DIR__, 2) . '/.pair-friend')) {
-    $configuration = file_get_contents(dirname(__DIR__, 2) . '/.pair-friend');
+if (file_exists(dirname(__DIR__, 2) . '/.tdg-php')) {
+    $configuration = file_get_contents(dirname(__DIR__, 2) . '/.tdg-php');
     $lines = explode("\n", $configuration);
     foreach ($lines as $line) {
         $parts = explode('=', $line);
