@@ -115,7 +115,7 @@ function extractCode($response): string
     }
 }
 
-function getClassname($code)
+function getClassname($code): ?string
 {
     $pattern = '/class\s+([a-zA-Z_][\w]*)\s*{/';
     if (preg_match($pattern, $code, $matches)) {
@@ -124,7 +124,7 @@ function getClassname($code)
     return null;
 }
 
-function extractTestedFilePath($testContent)
+function extractTestedFilePath($testContent): array|string
 {
     $source = '';
     if (preg_match('/namespace\s+([a-zA-Z0-9_\\\\]+)\s*;/', $testContent, $matches)) {
