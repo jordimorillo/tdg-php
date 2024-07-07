@@ -2,48 +2,48 @@
 
 # TDG-PHP
 
-TDG-PHP es una herramienta para generar y probar código PHP basado en tests proporcionados. Utiliza un servicio de generación de código y ejecuta las pruebas para asegurar que el código generado cumple con los requisitos especificados en los tests.
+TDG-PHP is a tool for generating and testing PHP code based on provided tests. It utilizes a code generation service and runs tests to ensure the generated code meets the requirements specified in the tests.
 
-## Instalación
+## Installation
 
-Para instalar TDG-PHP en tu proyecto, ejecuta el siguiente comando:
+To install TDG-PHP in your project, run the following command:
 
 ```bash
 composer require jordimorillo/tdg-php
 ```
 
-## Uso
+## Usage
 
-Una vez instalado, puedes utilizar el comando `tdg-php` para generar y probar código basado en un archivo de test PHP. El comando se ejecuta de la siguiente manera:
+Once installed, you can use the `tdg-php` command to generate and test code based on a PHP test file. The command is executed as follows:
 
 ```bash
-./vendor/bin/tdg-php ruta/al/archivo/test.php
+./vendor/bin/tdg-php path/to/test/file.php
 ```
 
-### Parámetros
+### Parameters
 
-- `ruta/al/archivo/test.php`: La ruta al archivo de test PHP que se utilizará para generar el código.
+- `path/to/test/file.php`: The path to the PHP test file that will be used to generate the code.
 
-### Ejemplo de uso
+### Example Usage
 
 ```bash
 ./vendor/bin/tdg-php tests/ExampleTest.php
 ```
 
-## Configuración
+## Configuration
 
-Para que la herramienta funcione correctamente, es necesario configurar ciertas variables de entorno. A continuación se describen las variables necesarias y sus propósitos:
+To ensure the tool works correctly, certain environment variables need to be configured. Below are the necessary variables and their purposes:
 
-- `CONTAINER_PROJECT_ROOT`: La ruta raíz del proyecto dentro del contenedor Docker.
-- `PHPUNIT_XML_PATH`: La ruta al archivo de configuración de PHPUnit.
-- `BASE_NAMESPACE`: El namespace base del proyecto.
-- `TESTS_BASE_NAMESPACE`: El namespace base para los tests.
-- `OPENAI_API_KEY`: La clave API para el servicio de generación de código.
-- `MAX_ATTEMPTS`: El número máximo de intentos para generar un código válido.
-- `PHP_DOCKER_CONTAINER_NAME`: El nombre del contenedor Docker que ejecutará las pruebas.
-- `PERMANENT_ATTACHMENTS`: Archivos adicionales que se adjuntarán siempre en la generación de código.
+- `CONTAINER_PROJECT_ROOT`: The root path of the project within the Docker container.
+- `PHPUNIT_XML_PATH`: The path to the PHPUnit configuration file.
+- `BASE_NAMESPACE`: The base namespace of the project.
+- `TESTS_BASE_NAMESPACE`: The base namespace for the tests.
+- `OPENAI_API_KEY`: The API key for the code generation service.
+- `MAX_ATTEMPTS`: The maximum number of attempts to generate valid code.
+- `PHP_DOCKER_CONTAINER_NAME`: The name of the Docker container that will run the tests.
+- `PERMANENT_ATTACHMENTS`: Additional files that will always be attached in the code generation process.
 
-### Ejemplo de archivo `.env`
+### Example `.env` File
 
 ```env
 CONTAINER_PROJECT_ROOT=/path/to/project
@@ -56,38 +56,38 @@ PHP_DOCKER_CONTAINER_NAME=php-container
 PERMANENT_ATTACHMENTS=src/Helper.php,src/Utils.php
 ```
 
-## Desarrollo
+## Development
 
-### Requisitos
+### Requirements
 
-- PHP 7.4 o superior
+- PHP 7.4 or higher
 - Composer
 - Docker
-- Extensión de PHP para cURL
+- PHP cURL extension
 
-### Ejecutar Tests
+### Running Tests
 
-Para ejecutar los tests, utiliza el siguiente comando:
+To run the tests, use the following command:
 
 ```bash
 composer test
 ```
 
-### Estructura del Proyecto
+### Project Structure
 
-El proyecto sigue una arquitectura hexagonal. A continuación se describe brevemente cada uno de los componentes:
+The project follows a hexagonal architecture. Below is a brief description of each component:
 
-- `src/Application/Service/TestService.php`: Servicio principal que orquesta la generación y prueba de código.
-- `src/Domain/`: Contiene la lógica de dominio del proyecto.
-- `src/Infrastructure/Persistence/CodeRepository.php`: Repositorio responsable de manejar los archivos de código.
-- `src/Infrastructure/Persistence/TestRepository.php`: Repositorio responsable de manejar los archivos de test y ejecutar las pruebas.
-- `src/Console/Command/RunCommand.php`: Comando de consola para ejecutar la herramienta.
-- `bootstrap.php`: Archivo de bootstrap para inicializar y ejecutar el servicio.
+- `src/Application/Service/TestService.php`: Main service that orchestrates code generation and testing.
+- `src/Domain/`: Contains the domain logic of the project.
+- `src/Infrastructure/Persistence/CodeRepository.php`: Repository responsible for managing code files.
+- `src/Infrastructure/Persistence/TestRepository.php`: Repository responsible for managing test files and running tests.
+- `src/Console/Command/RunCommand.php`: Console command to run the tool.
+- `bootstrap.php`: Bootstrap file to initialize and run the service.
 
-## Contribuir
+## Contributing
 
-Las contribuciones son bienvenidas. Por favor, abre un issue o envía un pull request para contribuir al proyecto.
+Contributions are welcome. Please open an issue or submit a pull request to contribute to the project.
 
-## Licencia
+## License
 
-Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
