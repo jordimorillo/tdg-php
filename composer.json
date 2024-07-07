@@ -2,6 +2,7 @@
   "name": "jordimorillo/tdg-php",
   "description": "A Test Driven Generative Development tool to make the code parting from tests",
   "type": "project",
+  "license": "MIT",
   "require": {
     "php": "^8.0",
     "guzzlehttp/guzzle": "^7.3",
