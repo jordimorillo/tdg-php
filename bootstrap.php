@@ -49,7 +49,7 @@ while ($attempt < getenv('MAX_ATTEMPTS')) {
         continue;
     }
 
-    $projectRoot = getenv('PROJECT_ROOT');
+    $projectRoot = dirname(__DIR__, 3);
     $filePath = $projectRoot . $testedFilePath . '/' . $className . '.php';
     debug("File path for generated code: $filePath");
 
