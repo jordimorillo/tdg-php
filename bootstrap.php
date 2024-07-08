@@ -1,15 +1,11 @@
 <?php
 
-define('DEBUG', false);
-
-
 loadEnvironment();
-
 
 $attempt = 0;
 while ($attempt < getenv('MAX_ATTEMPTS')) {
     $attempt++;
-    echo "\nAttempt $attempt of " . getenv('MAX_ATTEMPTS');
+    echo "Attempt $attempt of " . getenv('MAX_ATTEMPTS')."\n";
 
     $testContent = getTestContent($argv[1]);
     debug("Test content retrieved from file: $argv[1]");
@@ -73,7 +69,7 @@ while ($attempt < getenv('MAX_ATTEMPTS')) {
  */
 function debug($message, $data = null): void
 {
-    if (DEBUG) {
+    if (getenv('DEBUG')) {
         if (is_array($data)) {
             echo $message . "\n";
             print_r($data);
