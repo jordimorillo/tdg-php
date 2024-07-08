@@ -38,6 +38,7 @@ while ($attempt < getenv('MAX_ATTEMPTS')) {
     }
 
     $filePath = $testedFilePath . '/' . $className . '.php';
+    die($filePath);
     createFile($filePath, $generatedCode);
 
     if (runTests($argv[1], getenv('PHPUNIT_XML_PATH'), getenv('PROJECT_ROOT') . '/logs/error.log')) {
