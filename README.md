@@ -1,5 +1,3 @@
-### README.md
-
 # TDG-PHP
 
 TDG-PHP is a tool for generating and testing PHP code based on provided tests. It utilizes a code generation service and runs tests to ensure the generated code meets the requirements specified in the tests.
