@@ -55,7 +55,7 @@ while ($attempt < getenv('MAX_ATTEMPTS')) {
  */
 function loadEnvironment(): void
 {
-    $configPath = dirname(__DIR__, 3) . '/.tdg-php';
+    $configPath = __DIR__ . '/../../../.tdg-php'; // Adjusted path relative to bootstrap.php location
     if (file_exists($configPath)) {
         $configuration = file_get_contents($configPath);
         $lines = explode("\n", $configuration);
