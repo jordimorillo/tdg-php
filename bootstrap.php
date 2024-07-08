@@ -9,7 +9,7 @@ loadEnvironment();
 $attempt = 0;
 while ($attempt < getenv('MAX_ATTEMPTS')) {
     $attempt++;
-    debug("Attempt $attempt of " . getenv('MAX_ATTEMPTS'));
+    echo "\nAttempt $attempt of " . getenv('MAX_ATTEMPTS');
 
     $testContent = getTestContent($argv[1]);
     debug("Test content retrieved from file: $argv[1]");
