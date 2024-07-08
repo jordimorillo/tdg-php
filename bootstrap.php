@@ -37,11 +37,10 @@ while ($attempt < getenv('MAX_ATTEMPTS')) {
         continue;
     }
 
-    $filePath = $testedFilePath . '/' . $className . '.php';
-    die($filePath);
+    $filePath = dirname(__DIR__, 3) . '/' . $testedFilePath . '/' . $className . '.php';
     createFile($filePath, $generatedCode);
 
-    if (runTests($argv[1], getenv('PHPUNIT_XML_PATH'), getenv('PROJECT_ROOT') . '/logs/error.log')) {
+    if (runTests($argv[1], getenv('PHPUNIT_XML_PATH'), dirname(__DIR__, 3) . '/logs/error.log')) {
         echo "Test passed!\n";
         break;
     } else {
@@ -56,7 +55,7 @@ while ($attempt < getenv('MAX_ATTEMPTS')) {
  */
 function loadEnvironment(): void
 {
-    $configPath = __DIR__ . '/../../../.tdg-php'; // Adjusted path relative to bootstrap.php location
+    $configPath = dirname(__DIR__, 3) . '/.tdg-php'; // Adjusted path relative to bootstrap.php location
     if (file_exists($configPath)) {
         $configuration = file_get_contents($configPath);
         $lines = explode("\n", $configuration);
