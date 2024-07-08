@@ -2,7 +2,7 @@
 
 function loadEnvironment(): void
 {
-    $configPath = dirname(__DIR__, 3) . '/.tdg-php';
+    $configPath = '.tdg-php';
     if (file_exists($configPath)) {
         $configuration = file_get_contents($configPath);
         $lines = explode("\n", $configuration);

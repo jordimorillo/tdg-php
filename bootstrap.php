@@ -1,11 +1,13 @@
 <?php
 
 require_once 'config.php';
-require_once 'src/Application/CodeGenerationService.php';
-require_once 'src/Infrastructure/Api/LlamaApiClient.php';
-require_once 'src/Infrastructure/File/FileManager.php';
-require_once 'src/Infrastructure/File/TestFileRepository.php';
-require_once 'src/Infrastructure/File/AttachmentRepository.php';
+require_once 'vendor/jordimorillo/tdg-php/src/Domain/Model/Test.php';
+require_once 'vendor/jordimorillo/tdg-php/src/Domain/Model/Code.php';
+require_once 'vendor/jordimorillo/tdg-php/src/Application/CodeGenerationService.php';
+require_once 'vendor/jordimorillo/tdg-php/src/Infrastructure/Api/LlamaApiClient.php';
+require_once 'vendor/jordimorillo/tdg-php/src/Infrastructure/File/FileManager.php';
+require_once 'vendor/jordimorillo/tdg-php/src/Infrastructure/File/TestFileRepository.php';
+require_once 'vendor/jordimorillo/tdg-php/src/Infrastructure/File/AttachmentRepository.php';
 
 use Application\CodeGenerationService;
 use Infrastructure\Api\LlamaApiClient;
@@ -34,7 +36,7 @@ $codeGenerationService = new CodeGenerationService(
 $attempt = 0;
 $maxAttempts = getenv('MAX_ATTEMPTS');
 $testFilePath = $argv[1];
-$projectRoot = dirname(__DIR__, 3);
+$projectRoot = './';
 $phpunitXmlPath = $projectRoot . '/' . getenv('PHPUNIT_XML_PATH');
 $errorLogPath = $projectRoot . '/logs/error.log';
 

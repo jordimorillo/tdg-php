@@ -34,7 +34,7 @@ class CodeGenerationService
         $test = new Test($testFilePath, $testContent);
 
         $attachmentsCode = $this->attachmentRepository->getCode();
-        $relatedCode = $this->testFileRepository->getRelatedCode($test);
+        $relatedCode = $this->testFileRepository->getRelatedCode($test->getContent());
 
         $apiCallData = $this->generateApiCallData($relatedCode, $attachmentsCode, $test);
         $response = $this->llamaApiClient->call($apiCallData);
