@@ -80,7 +80,7 @@ class CodeGenerationService
                 implode("\n\n", $attachmentsCode),
                 "Take as strict reference the following test:",
                 "**$testNamespace**\n```php\n{$test->getContent()}\n```\n\n"
-                . "Develop the subject under test class to meet the conditions of the test and verify if they are met.\n"
+                . "Develop the subject under test class to meet all the conditions of the test and verify if they are met. The use of composer extensions is prohibited.\n"
             ]),
             'stream' => false,
             'temperature' => 0.9,

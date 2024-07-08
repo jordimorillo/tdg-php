@@ -25,7 +25,7 @@ class TestFileRepository
             $path = str_replace(getenv('TESTS_BASE_NAMESPACE'), 'tests', $namespace);
             $path = str_replace(getenv('BASE_NAMESPACE'), 'src', $path);
             $relativePath = str_replace('\\', '/', $path) . '.php';
-            $filePath = getenv('PROJECT_ROOT') . '/' . $relativePath;
+            $filePath = './' . $relativePath;
             if (file_exists($filePath) && !str_contains($filePath, 'vendor')) {
                 $relatedFiles[$relativePath] = file_get_contents($filePath);
             }
