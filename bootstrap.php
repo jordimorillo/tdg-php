@@ -51,7 +51,7 @@ while ($attempt < getenv('MAX_ATTEMPTS')) {
         continue;
     }
 
-    $filePath = dirname(__DIR__, 3) . '/' . $testedFilePath . '/' . $className . '.php';
+    $filePath = dirname(__DIR__, 3) . $testedFilePath . '/' . $className . '.php';
     echo "File path for generated code: $filePath\n";
 
     createFile($filePath, $generatedCode);
