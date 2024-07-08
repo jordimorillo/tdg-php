@@ -10,10 +10,19 @@ while ($attempt < getenv('MAX_ATTEMPTS')) {
     echo "Attempt $attempt of " . getenv('MAX_ATTEMPTS') . "\n";
 
     $testContent = getTestContent($argv[1]);
+    echo "Test content retrieved from file: $argv[1]\n";
+
     $attachmentsCode = getAttachmentsCode(explode(',', getenv('PERMANENT_ATTACHMENTS')));
+    echo "Attachments code retrieved:\n";
+    print_r($attachmentsCode);
+
     $relatedCode = getRelatedCode($testContent);
+    echo "Related code files found:\n";
+    print_r(array_keys($relatedCode));
 
     $apiCallData = generateApiCallData($relatedCode, $attachmentsCode, $testContent);
+    echo "API call data generated:\n";
+    print_r($apiCallData);
 
     $response = callLlamaApi($apiCallData);
 
@@ -23,6 +32,8 @@ while ($attempt < getenv('MAX_ATTEMPTS')) {
     }
 
     $generatedCode = extractCode($response);
+    echo "Code extracted from API response:\n";
+    echo "$generatedCode\n";
 
     if (empty($generatedCode)) {
         echo "No code generated. Retrying...\n";
@@ -30,23 +41,32 @@ while ($attempt < getenv('MAX_ATTEMPTS')) {
     }
 
     $className = getClassname($generatedCode);
+    echo "Class name extracted from generated code: $className\n";
+
     $testedFilePath = extractTestedFilePath($testContent);
+    echo "Tested file path extracted: $testedFilePath\n";
 
     if (!$className) {
         echo "Failed to extract classname from generated code. Retrying...\n";
         continue;
     }
 
-    $filePath = dirname(__DIR__, 3) . '/' . $testedFilePath . '/' . $className . '.php';
-    createFile($filePath, $generatedCode);
+    $projectRoot = getenv('PROJECT_ROOT');
+    $filePath = $projectRoot . '/' . $testedFilePath . '/' . $className . '.php';
+    echo "File path for generated code: $filePath\n";
 
-    if (runTests($argv[1], getenv('PHPUNIT_XML_PATH'), dirname(__DIR__, 3) . '/logs/error.log')) {
+    createFile($filePath, $generatedCode);
+    echo "Generated file created successfully.\n";
+
+    $phpunitXmlPath = $projectRoot . '/' . getenv('PHPUNIT_XML_PATH');
+    $errorLogPath = $projectRoot . '/logs/error.log';
+    if (runTests($argv[1], $phpunitXmlPath, $errorLogPath)) {
         echo "Test passed!\n";
         break;
     } else {
         echo "Test failed. Check error log for details.\n";
         unlink($filePath);
-        deleteEmptyDirectories($filePath, getenv('PROJECT_ROOT'));
+        deleteEmptyDirectories($filePath, $projectRoot);
     }
 }
 
@@ -56,6 +76,7 @@ while ($attempt < getenv('MAX_ATTEMPTS')) {
 function loadEnvironment(): void
 {
     $configPath = dirname(__DIR__, 3) . '/.tdg-php'; // Adjusted path relative to bootstrap.php location
+    echo "Loading environment from config file: $configPath\n";
     if (file_exists($configPath)) {
         $configuration = file_get_contents($configPath);
         $lines = explode("\n", $configuration);
@@ -65,6 +86,7 @@ function loadEnvironment(): void
                 $key = $parts[0];
                 $value = $parts[1];
                 putenv("$key=$value");
+                echo "Setting environment variable: $key=$value\n";
             }
         }
     }
@@ -78,6 +100,7 @@ function loadEnvironment(): void
  */
 function getTestContent(string $phpTestPath)
 {
+    echo "Retrieving test content from: $phpTestPath\n";
     return file_get_contents($phpTestPath);
 }
 
@@ -89,6 +112,7 @@ function getTestContent(string $phpTestPath)
  */
 function getRelatedCode(string $testContent): array
 {
+    echo "Finding related code based on test content...\n";
     preg_match_all('/use\s+([a-zA-Z0-9_\\\\]+);/', $testContent, $matches);
     $relatedFiles = [];
 
@@ -99,6 +123,7 @@ function getRelatedCode(string $testContent): array
         $filePath = getenv('PROJECT_ROOT') . '/' . $relativePath;
         if (file_exists($filePath) && !str_contains($filePath, 'vendor')) {
             $relatedFiles[$relativePath] = file_get_contents($filePath);
+            echo "Related file found: $relativePath\n";
         }
     }
 
@@ -113,12 +138,14 @@ function getRelatedCode(string $testContent): array
  */
 function getAttachmentsCode(array $permanentAttachments): array
 {
+    echo "Retrieving attachment code from permanent attachments...\n";
     $attachmentsCode = [];
     foreach ($permanentAttachments as $attachment) {
         $attachmentPath = getenv('PROJECT_ROOT') . '/' . str_replace('./', '', $attachment);
         if (file_exists($attachmentPath)) {
             $content = file_get_contents($attachmentPath);
             $attachmentsCode[] = $content;
+            echo "Attachment file found: $attachmentPath\n";
         }
     }
     return $attachmentsCode;
@@ -132,6 +159,9 @@ function getAttachmentsCode(array $permanentAttachments): array
  */
 function callLlamaApi(array $data)
 {
+    echo "Calling LLAMA API with data:\n";
+    print_r($data);
+
     $ch = curl_init('http://localhost:11434/api/generate');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
@@ -146,6 +176,9 @@ function callLlamaApi(array $data)
     }
 
     curl_close($ch);
+    echo "API response received:\n";
+    print_r($response);
+
     return json_decode($response, true);
 }
 
@@ -159,6 +192,7 @@ function callLlamaApi(array $data)
  */
 function generateApiCallData(array $relatedCode, array $attachmentsCode, string $testContent): array
 {
+    echo "Generating API call data...\n";
     $testNamespace = '';
     if (preg_match('/namespace\s+([a-zA-Z0-9_\\\\]+)\s*;/', $testContent, $matches)) {
         $testNamespace = $matches[1];
@@ -187,6 +221,7 @@ function generateApiCallData(array $relatedCode, array $attachmentsCode, string 
  */
 function extractCode(array $response): string
 {
+    echo "Extracting code from API response...\n";
     if (preg_match('/```php\\n(.*)\\n```/s', $response['response'], $matches)) {
         $match = str_replace('<?php', '', $matches[1]);
         return '<?php' . "\n" . $match;
@@ -203,6 +238,7 @@ function extractCode(array $response): string
  */
 function getClassname(string $code): ?string
 {
+    echo "Extracting class name from generated code...\n";
     $pattern = '/class\s+([a-zA-Z_][\w]*)\s*{/';
     if (preg_match($pattern, $code, $matches)) {
         return $matches[1];
@@ -218,6 +254,7 @@ function getClassname(string $code): ?string
  */
 function extractTestedFilePath(string $testContent): string
 {
+    echo "Extracting tested file path from test content...\n";
     if (preg_match('/namespace\s+([a-zA-Z0-9_\\\\]+)\s*;/', $testContent, $matches)) {
         $testNamespace = $matches[1];
         $source = str_replace(getenv('TESTS_BASE_NAMESPACE'), getenv('SOURCE_DIRECTORY'), $testNamespace);
@@ -235,6 +272,7 @@ function extractTestedFilePath(string $testContent): string
  */
 function createFile(string $filePath, string $fileContent): void
 {
+    echo "Creating file: $filePath\n";
     if (!file_exists(dirname($filePath))) {
         mkdir(dirname($filePath), 0777, true);
     }
@@ -251,6 +289,7 @@ function createFile(string $filePath, string $fileContent): void
  */
 function runTests(string $phpTestPath, string $phpunitXmlPath, string $errorLogPath): bool
 {
+    echo "Running PHPUnit tests...\n";
     $command = "php ./vendor/bin/phpunit --configuration=" . $phpunitXmlPath . " " . $phpTestPath;
     exec($command, $output, $returnVar);
     if ($returnVar !== 0) {
@@ -267,9 +306,11 @@ function runTests(string $phpTestPath, string $phpunitXmlPath, string $errorLogP
  */
 function deleteEmptyDirectories(string $path, string $root): void
 {
+    echo "Deleting empty directories up to project root...\n";
     while ($path !== $root && $path !== dirname($root)) {
         if (is_dir($path) && count(scandir($path)) == 2) {
             rmdir($path);
+            echo "Empty directory deleted: $path\n";
         }
         $path = dirname($path);
     }
