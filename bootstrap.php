@@ -216,7 +216,7 @@ function generateApiCallData(array $relatedCode, array $attachmentsCode, string 
             implode("\n\n", $relatedCode),
             implode("\n\n", $attachmentsCode),
             "Take as strict reference the following test:",
-            "**$testNamespace**```php\n$testContent```\n\n"
+            "**$testNamespace**\n```php\n$testContent\n```\n\n"
             . "Develop the subject under test class to meet the conditions of the test and verify if they are met.\n"
         ]),
         'stream' => false,
