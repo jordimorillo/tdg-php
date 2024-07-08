@@ -51,22 +51,21 @@ while ($attempt < getenv('MAX_ATTEMPTS')) {
         continue;
     }
 
-    $projectRoot = getenv('PROJECT_ROOT');
-    $filePath = $projectRoot . '/' . $testedFilePath . '/' . $className . '.php';
+    $filePath = dirname(__DIR__, 3) . '/' . $testedFilePath . '/' . $className . '.php';
     echo "File path for generated code: $filePath\n";
 
     createFile($filePath, $generatedCode);
     echo "Generated file created successfully.\n";
 
-    $phpunitXmlPath = $projectRoot . '/' . getenv('PHPUNIT_XML_PATH');
-    $errorLogPath = $projectRoot . '/logs/error.log';
+    $phpunitXmlPath = dirname(__DIR__, 3) . '/' . getenv('PHPUNIT_XML_PATH');
+    $errorLogPath = dirname(__DIR__, 3) . '/logs/error.log';
     if (runTests($argv[1], $phpunitXmlPath, $errorLogPath)) {
         echo "Test passed!\n";
         break;
     } else {
         echo "Test failed. Check error log for details.\n";
         unlink($filePath);
-        deleteEmptyDirectories($filePath, $projectRoot);
+        deleteEmptyDirectories($filePath, dirname(__DIR__, 3));
     }
 }
 
@@ -98,7 +97,7 @@ function loadEnvironment(): void
  * @param string $phpTestPath
  * @return false|string
  */
-function getTestContent(string $phpTestPath)
+function getTestContent(string $phpTestPath): bool|string
 {
     echo "Retrieving test content from: $phpTestPath\n";
     return file_get_contents($phpTestPath);
@@ -157,7 +156,7 @@ function getAttachmentsCode(array $permanentAttachments): array
  * @param array $data
  * @return mixed
  */
-function callLlamaApi(array $data)
+function callLlamaApi(array $data): mixed
 {
     echo "Calling LLAMA API with data:\n";
     print_r($data);
