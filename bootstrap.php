@@ -1,6 +1,6 @@
 <?php
 
-if (file_exists(dirname(__DIR__, 2) . '/.tdg-php')) {
+if (file_exists(dirname(__DIR__, 3) . '/.tdg-php')) {
     $configuration = file_get_contents(dirname(__DIR__, 3) . '/.tdg-php');
     $lines = explode("\n", $configuration);
     foreach ($lines as $line) {
@@ -16,17 +16,14 @@ if (file_exists(dirname(__DIR__, 2) . '/.tdg-php')) {
 // Variables
 $phpTestPath = $argv[1];
 $projectRoot = dirname(__DIR__, 2);
-$containerProjectRoot = getenv('CONTAINER_PROJECT_ROOT');
 $phpunitXmlPath = getenv('PHPUNIT_XML_PATH');
 $baseNamespace = getenv('BASE_NAMESPACE');
 $testsBaseNamespace = getenv('TESTS_BASE_NAMESPACE');
-$openaiApiKey = getenv('OPENAI_API_KEY');
+$apiKey = getenv('API_KEY');
 $maxAttempts = getenv('MAX_ATTEMPTS');
-$dockerContainer = getenv('PHP_DOCKER_CONTAINER_NAME');
 $permanentAttachments = explode(',', getenv('PERMANENT_ATTACHMENTS'));
-$containerSrcFolder = $containerProjectRoot . '/src';
 
-// Funciones
+// Functions
 function getTestContent($phpTestPath): false|string
 {
     return file_get_contents($phpTestPath);
@@ -43,9 +40,7 @@ function getRelatedCode($testContent, $projectRoot, $baseNamespace, $testsBaseNa
         $relativePath = str_replace('\\', '/', $path) . '.php';
         $filePath = $projectRoot . '/' . $relativePath;
         if (file_exists($filePath) && !str_contains($filePath, 'vendor')) {
-            $relatedFiles[$relativePath] = "```php\n" . file_get_contents(
-                    $filePath
-                ) . "\n```";
+            $relatedFiles[$relativePath] = "```php\n" . file_get_contents($filePath) . "\n```";
         }
     }
 
@@ -54,7 +49,7 @@ function getRelatedCode($testContent, $projectRoot, $baseNamespace, $testsBaseNa
 
 function callLlamaApi($data)
 {
-    $ch = curl_init('http://localhost:11434/api/generate'); // Cambia esta URL si tu endpoint es diferente
+    $ch = curl_init('http://localhost:11434/api/generate'); // Change this URL if your endpoint is different
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Content-Type: application/json'
@@ -65,7 +60,7 @@ function callLlamaApi($data)
     $response = curl_exec($ch);
 
     if (curl_errno($ch)) {
-        echo "Error al hacer la solicitud HTTP: " . curl_error($ch) . "\n";
+        echo "Error making HTTP request: " . curl_error($ch) . "\n";
         return null;
     }
 
@@ -103,7 +98,6 @@ function generateApiCallData(
         'temperature' => 0.9,
     ];
 }
-
 
 function extractCode($response): string
 {
@@ -143,15 +137,15 @@ function createFile($filePath, $fileContent): void
     file_put_contents($filePath, $fileContent);
 }
 
-function runTests($dockerContainer, $phpTestPath, $phpunitXmlPath, $errorLogPath): bool
+function runTests($phpTestPath, $phpunitXmlPath, $errorLogPath): bool
 {
-    $command = "docker exec $dockerContainer ./vendor/bin/phpunit --configuration=" . $phpunitXmlPath . " " . $phpTestPath;
+    $command = "php ./vendor/bin/phpunit --configuration=" . $phpunitXmlPath . " " . $phpTestPath;
     exec($command, $output, $returnVar);
     if ($returnVar !== 0) {
         $implode = implode("\n", $output);
         file_put_contents(
             $errorLogPath,
-            "Detalles del fallo en las pruebas:\n" . $implode
+            "Test failure details:\n" . $implode
         );
     }
     return $returnVar === 0;
@@ -190,62 +184,47 @@ function getAttachmentsCode(array $permanentAttachments, string $projectRoot): a
 
 while ($attempt < $maxAttempts) {
     $attempt++;
-    echo "Intento $attempt de $maxAttempts\n";
+    echo "Attempt $attempt of $maxAttempts\n";
 
     $testContent = getTestContent($phpTestPath);
     $attachmentsCode = getAttachmentsCode($permanentAttachments, $projectRoot);
     $relatedCode = getRelatedCode($testContent, $projectRoot, $baseNamespace, $testsBaseNamespace);
+
     $apiCallData = generateApiCallData($relatedCode, $attachmentsCode, $testContent);
+
     $response = callLlamaApi($apiCallData);
 
-    if ($response === null) {
-        echo "La solicitud a la API falló. Reintentando...\n";
+    if (!$response) {
+        echo "API call failed. Retrying...\n";
         continue;
     }
 
-    $code = extractCode($response);
-    $path = extractTestedFilePath($testContent);
-    $className = getClassname($code);
-    $filePath = $projectRoot . '/' . $path . '/' . $className . '.php';
-    $containerFilePath = $containerProjectRoot . '/' . $path . '/' . $className . '.php';
+    $generatedCode = extractCode($response);
 
-    if (empty($code) || empty($path)) {
-        echo "La respuesta de la API no contiene el código esperado. Reintentando...\n";
-        if (getenv('DEBUG') === 'true') {
-            echo "Response: " . json_encode($response) . "\n";
-            echo "Code: " . $code . "\n";
-            echo "Path: " . $path . "\n";
-            echo "ApiCallData: " . json_encode($apiCallData) . "\n";
-        }
+    if (empty($generatedCode)) {
+        echo "No code generated. Retrying...\n";
         continue;
     }
 
-    if (is_dir($filePath)) {
-        echo "Error: La ruta $filePath es un directorio. Reintentando...\n";
+    $classname = getClassname($generatedCode);
+    $testedFilePath = extractTestedFilePath($testContent);
+
+    if (!$classname) {
+        echo "Failed to extract classname from generated code. Retrying...\n";
         continue;
     }
 
-    createFile($filePath, $code);
+    $filePath = $projectRoot . '/' . $testedFilePath . '/' . $classname . '.php';
+    createFile($filePath, $generatedCode);
 
-    $errorLogPath = dirname(__DIR__, 2).'/tmp/' . time() . '.log';
+    $errorLogPath = $projectRoot . '/logs/error.log';
 
-    if (runTests($dockerContainer, $phpTestPath, $phpunitXmlPath, $errorLogPath)) {
-        echo "¡Implementación correcta y pruebas exitosas!\n";
-        exit(0);
+    if (runTests($phpTestPath, $phpunitXmlPath, $errorLogPath)) {
+        echo "Test passed!\n";
+        break;
     } else {
-        echo "Implementación fallida. Borrando archivo y reintentando...\n";
-        if(!file_exists($errorLogPath)) {
-            touch($errorLogPath);
-        }
-        $errorLog = file_get_contents($errorLogPath);
-        $errorLog .= 'filePath: ' . $filePath . "\n";
-        $errorLog .= 'proposed code: ' . $code . "\n";
-        file_put_contents($errorLogPath, $errorLog);
+        echo "Test failed. Check error log for details.\n";
         unlink($filePath);
-        exec("docker exec $dockerContainer rm -f $containerFilePath");
-        deleteEmptyDirectories(dirname($filePath), $projectRoot . '/src');
+        deleteEmptyDirectories($filePath, $projectRoot);
     }
 }
-
-echo "No se pudo obtener una implementación que pase todas las pruebas después de $maxAttempts intentos.\n";
-exit(1);
