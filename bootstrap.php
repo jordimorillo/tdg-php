@@ -1,11 +1,11 @@
 <?php
 
-define('DEBUG', true); // Cambia a false para desactivar el modo debug
+define('DEBUG', false);
 
-// Load environment variables from configuration file
+
 loadEnvironment();
 
-// Main execution loop
+
 $attempt = 0;
 while ($attempt < getenv('MAX_ATTEMPTS')) {
     $attempt++;
@@ -88,7 +88,7 @@ function debug($message, $data = null): void
  */
 function loadEnvironment(): void
 {
-    $configPath = dirname(__DIR__, 3) . '/.tdg-php'; // Adjusted path relative to bootstrap.php location
+    $configPath = dirname(__DIR__, 3) . '/.tdg-php';
     debug("Loading environment from config file: $configPath");
     if (file_exists($configPath)) {
         $configuration = file_get_contents($configPath);
