@@ -79,3 +79,9 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ### Additional Requirements
 
 For the tool to work, it is necessary to install Llama3 locally.
+
+---
+
+## 👤 Autor
+
+**Jordi Morillo Sells** — [LinkedIn](https://www.linkedin.com/in/jordi-morillo-sells/)
